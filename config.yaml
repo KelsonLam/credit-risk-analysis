@@ -1,0 +1,20 @@
+# Default configuration for the credit risk model.
+
+data:
+  # If a CSV path is given and the file exists, it is used. Otherwise the
+  # project generates a realistic synthetic dataset so it runs out of the box.
+  csv_path: ""          # e.g. "data/loans.csv"
+  target_column: "default"
+  n_samples: 12000      # size of the synthetic dataset
+  default_rate: 0.18    # base share of defaults in the synthetic data
+  seed: 42
+
+model:
+  test_size: 0.25
+  threshold: 0.5        # probability cutoff for the hard classification report
+
+scorecard:
+  # Points-to-double-the-odds scaling, in the spirit of a FICO-style score.
+  base_score: 600
+  base_odds: 50         # odds of being good at the base score
+  points_to_double_odds: 20
