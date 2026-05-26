@@ -108,6 +108,20 @@ with the default flag in the column named by `data.target_column`.
   is both a legal and an ethical problem in real lending. A real build would
   test for disparate impact. This baseline does not.
 
+## Feature screening with Information Value
+
+Before fitting, analysts rank features by Information Value, the standard credit
+measure of how well a single variable separates defaulters from payers.
+`woe.py` computes Weight of Evidence and IV.
+
+```python
+from credit_risk.woe import rank_features
+rank_features(df, target_column="default")   # IV per feature, strongest first
+```
+
+A rough reading of IV: under 0.02 is useless, 0.1 to 0.3 is medium, and above
+0.5 is suspiciously strong (often a sign of leakage).
+
 ## Tests
 
 ```bash
