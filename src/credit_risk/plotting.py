@@ -11,26 +11,34 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import roc_curve
 
-from . import metrics
+from . import metrics, viz_style
+
+# Payers and defaulters are a genuine good/bad outcome pair, not two
+# arbitrary categories, so they get a fixed semantic mapping rather than
+# the first two slots of the general categorical set.
+GOOD, BAD = viz_style.AQUA, viz_style.RED
 
 
 def plot_roc(y_true, pd_hat, title="ROC curve"):
+    viz_style.apply()
     fpr, tpr, _ = roc_curve(y_true, pd_hat)
     a = metrics.auc(y_true, pd_hat)
     fig, ax = plt.subplots(figsize=(7, 6))
-    ax.plot(fpr, tpr, color="tab:blue", linewidth=2, label=f"Model (AUC = {a:.3f})")
-    ax.plot([0, 1], [0, 1], color="gray", linestyle="--", label="Random")
+    ax.plot(fpr, tpr, color=viz_style.BLUE, linewidth=2.2,
+           label=f"Model (AUC = {a:.3f})")
+    ax.plot([0, 1], [0, 1], color=viz_style.BASELINE, linestyle="--",
+           label="Random")
     ax.set_xlabel("False positive rate")
     ax.set_ylabel("True positive rate")
     ax.set_title(title)
     ax.legend(loc="lower right")
-    ax.grid(True, alpha=0.3)
     fig.tight_layout()
     return fig
 
 
 def plot_ks(y_true, pd_hat, title="KS separation"):
     """Cumulative payer and defaulter curves, with the KS gap marked."""
+    viz_style.apply()
     y_true = np.asarray(y_true)
     pd_hat = np.asarray(pd_hat)
     order = np.argsort(pd_hat)
@@ -44,48 +52,48 @@ def plot_ks(y_true, pd_hat, title="KS separation"):
     k = int(np.argmax(gap))
 
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(pd_sorted, cum_good, label="Payers", color="tab:green")
-    ax.plot(pd_sorted, cum_bad, label="Defaulters", color="tab:red")
-    ax.vlines(pd_sorted[k], cum_bad[k], cum_good[k], color="black",
-              linestyle=":", label=f"KS = {gap[k]:.3f}")
+    ax.plot(pd_sorted, cum_good, label="Payers", color=GOOD, linewidth=2)
+    ax.plot(pd_sorted, cum_bad, label="Defaulters", color=BAD, linewidth=2)
+    ax.vlines(pd_sorted[k], cum_bad[k], cum_good[k], color=viz_style.INK,
+              linestyle=":", linewidth=1.6, label=f"KS = {gap[k]:.3f}")
     ax.set_xlabel("Predicted probability of default")
     ax.set_ylabel("Cumulative share")
     ax.set_title(title)
     ax.legend()
-    ax.grid(True, alpha=0.3)
     fig.tight_layout()
     return fig
 
 
 def plot_score_distribution(scores, y_true, title="Credit score distribution"):
     """Overlaid score histograms for payers and defaulters."""
+    viz_style.apply()
     scores = np.asarray(scores)
     y_true = np.asarray(y_true)
     fig, ax = plt.subplots(figsize=(9, 5))
     bins = np.linspace(scores.min(), scores.max(), 40)
-    ax.hist(scores[y_true == 0], bins=bins, alpha=0.6, label="Paid", color="tab:green")
-    ax.hist(scores[y_true == 1], bins=bins, alpha=0.6, label="Default", color="tab:red")
+    ax.hist(scores[y_true == 0], bins=bins, alpha=0.65, label="Paid", color=GOOD)
+    ax.hist(scores[y_true == 1], bins=bins, alpha=0.65, label="Default", color=BAD)
     ax.set_xlabel("Credit score")
     ax.set_ylabel("Applicants")
     ax.set_title(title)
     ax.legend()
-    ax.grid(True, axis="y", alpha=0.3)
+    ax.grid(axis="x", visible=False)
     fig.tight_layout()
     return fig
 
 
 def plot_calibration(y_true, pd_hat, n_bins=10, title="Calibration"):
+    viz_style.apply()
     table = metrics.calibration_table(y_true, pd_hat, n_bins)
     fig, ax = plt.subplots(figsize=(7, 6))
     ax.plot(table["predicted_default_rate"], table["actual_default_rate"],
-            "o-", color="tab:blue", label="Model")
+            "o-", color=viz_style.BLUE, linewidth=2, label="Model")
     lim = [0, max(table["predicted_default_rate"].max(), table["actual_default_rate"].max()) * 1.05]
-    ax.plot(lim, lim, "--", color="gray", label="Perfect calibration")
+    ax.plot(lim, lim, "--", color=viz_style.BASELINE, label="Perfect calibration")
     ax.set_xlabel("Predicted default rate")
     ax.set_ylabel("Actual default rate")
     ax.set_title(title)
     ax.legend()
-    ax.grid(True, alpha=0.3)
     fig.tight_layout()
     return fig
 
